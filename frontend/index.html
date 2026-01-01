@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Risk-Based AuthN Simulator</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1f3a5f;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 40px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .form-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    label {
+      width: 180px;
+      font-weight: 500;
+      color: #111827;
+    }
+
+    select,
+    input[type="number"] {
+      width: 280px;
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: #ffffff;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 22px;
+      background-color: #395aa2;
+      color: #ffffff;
+      border: none;
+      border-radius: 18px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1d4ed8;
+    }
+
+    .button-row {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .result-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 20px;
+      background-color: #f9fafb;
+    }
+
+    .result-title {
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .result-box p {
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    .result-box ul {
+      margin: 8px 0 0 20px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Risk-Based AuthN Simulator</h1>
+    <div class="subtitle">
+      Simulating Conditional Access
+    </div>
+
+    <div class="form-row">
+      <label for="location">Login Location:</label>
+      <select id="location">
+        <option value="same">Same Location</option>
+        <option value="new">New Location</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label for="device">Device:</label>
+      <select id="device">
+        <option value="known">Known Device</option>
+        <option value="unknown">Unknown Device</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label for="time">Login Time:</label>
+      <select id="time">
+        <option value="normal">Normal Hours</option>
+        <option value="odd">Odd Hours</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label for="failed">Failed Login Attempts:</label>
+      <input type="number" id="failed" value="0" min="0">
+    </div>
+
+    <div class="button-row">
+      <!-- IMPORTANT FIX -->
+      <button type="button" id="analyzeBtn">Analyze Login Risk</button>
+    </div>
+
+    <div class="result-box">
+      <div class="result-title">Risk Assessment Result</div>
+      <p>Risk Score: –</p>
+      <p>Risk Level: –</p>
+      <p>Reasons:</p>
+      <ul>
+        <li>–</li>
+      </ul>
+      <p><strong>Recommended Action:</strong> –</p>
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT MUST BE HERE -->
+  <script>
+    document.getElementById("analyzeBtn").addEventListener("click", function () {
+
+      const data = {
+        location: document.getElementById("location").value,
+        device: document.getElementById("device").value,
+        time: document.getElementById("time").value,
+        failed_attempts: parseInt(document.getElementById("failed").value)
+      };
+
+      fetch("http://127.0.0.1:5000/analyze-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(result => {
+        document.querySelector(".result-box").innerHTML = `
+          <div class="result-title">Risk Assessment Result</div>
+          <p>Risk Score: ${result.risk_score}</p>
+          <p>Risk Level: ${result.risk_level}</p>
+          <p>Reasons:</p>
+          <ul>
+            ${result.reasons.map(r => `<li>${r}</li>`).join("")}
+          </ul>
+          <p><strong>Recommended Action:</strong> ${result.recommended_action}</p>
+        `;
+      })
+      .catch(error => {
+        console.error("Error:", error);
+      });
+
+    });
+  </script>
+
+</body>
+</html>
